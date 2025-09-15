@@ -25,6 +25,7 @@ pragma solidity 0.8.19;
 import {VRFConsumerBaseV2Plus} from "@chainlink/contracts/src/v0.8/vrf/dev/VRFConsumerBaseV2Plus.sol";
 import {VRFV2PlusClient} from "@chainlink/contracts/src/v0.8/vrf/dev/libraries/VRFV2PlusClient.sol";
 
+// CEI PATTERN: Check, Effect(internal state changes), Interaction(external interactions)
 /**
  * @title Raffle
  * @author Reza Ghoreyshi => 0xrezza
@@ -117,13 +118,13 @@ contract Raffle is VRFConsumerBaseV2Plus {
         s_raffleState = RaffleState.OPEN;
         s_players = new address payable[](0);
         s_lastTimeStamp = block.timestamp;
+        emit WinnerPicked(s_recentWinner);
 
 
         (bool success, ) = recentWinner.call{value: address(this).balance}("");
         if (!success) {
             revert Raffle_TransferFailed();
         }
-        emit WinnerPicked(s_recentWinner);
     }
 
     // Getter functions
