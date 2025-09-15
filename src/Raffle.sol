@@ -98,7 +98,7 @@ contract Raffle is VRFConsumerBaseV2Plus {
      * @return - ignored
      */
     function checkUpkeep(
-        bytes calldata /* checkData */
+        bytes memory /* checkData */
     ) public view returns (bool upkeepNeeded, bytes memory /* performData */) {
         bool timeHasPassed = (block.timestamp - s_lastTimeStamp > i_interval);
         bool isOpen = s_raffleState == RaffleState.OPEN;
@@ -108,8 +108,9 @@ contract Raffle is VRFConsumerBaseV2Plus {
         return (upkeepNeeded, "");
     }
 
-    function pickWinner() external {
-        if (block.timestamp - s_lastTimeStamp > i_interval) {
+    function performUpkeep() external {
+        (bool upkeepNeeded, ) = checkUpkeep("");
+        if (!upkeepNeeded) {
             revert();
         }
 
