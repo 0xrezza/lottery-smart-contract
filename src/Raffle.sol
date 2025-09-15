@@ -36,6 +36,11 @@ contract Raffle is VRFConsumerBaseV2Plus {
     error Raffle__SendMoreToInterRaffle();
     error Raffle_TransferFailed();
     error Raffle_RaffleNotOpen();
+    error Raffle__UpkeepNotNeeded(
+        uint256 balance,
+        uint256 playersLength,
+        uint256 raffleState
+    );
 
     enum RaffleState {
         OPEN,
@@ -111,7 +116,11 @@ contract Raffle is VRFConsumerBaseV2Plus {
     function performUpkeep() external {
         (bool upkeepNeeded, ) = checkUpkeep("");
         if (!upkeepNeeded) {
-            revert();
+            revert Raffle__UpkeepNotNeeded(
+                address(this).balance,
+                s_players.length,
+                uint256(s_raffleState)
+            );
         }
 
         s_raffleState = RaffleState.CALCULATING;
@@ -128,11 +137,11 @@ contract Raffle is VRFConsumerBaseV2Plus {
                     VRFV2PlusClient.ExtraArgsV1({nativePayment: false})
                 )
             });
-        uint256 requestID = s_vrfCoordinator.requestRandomWords(request);
+        s_vrfCoordinator.requestRandomWords(request);
     }
 
     function fulfillRandomWords(
-        uint256 requestId,
+        uint256 /*requestId*/,
         uint256[] calldata randomWords
     ) internal override {
         uint256 indexOfWinner = randomWords[0] % s_players.length;
